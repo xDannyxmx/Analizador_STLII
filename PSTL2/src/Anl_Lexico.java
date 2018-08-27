@@ -1,180 +1,268 @@
+
 public class Anl_Lexico {
 
-    static char actual;
-    static int position = 0;
-    static int state;
-    static int last = 0;
-    static String text = new String("void1");
-    // TendrÈ que leer un archivo para las comillas.
-    static boolean continues = true;
-    static boolean contString = false;
-    static boolean contInt = false;
-    static boolean contDot = false;
-    String tv[] = {
-            /* 0  */ "identificador",
-            /* 1  */ "entero",
-            /* 2  */ "real",
-            /* 3  */ "cadena",
-            /* 4  */ "tipo",       // int, float, void
-            /* 5  */ "opSuma",     // + -
-            /* 6  */ "opMul",      // * /
-            /* 7  */ "opRelac",    // < <= > >=
-            /* 8  */ "opOr",       // ||
-            /* 9  */ "opAnd",      // &&
-            /* 10 */ "opNot",      // !
-            /* 11 */ "opIgualdad", // == !=
-            /* 12 */ ";",
-            /* 13 */ ",",
-            /* 14 */ "(",
-            /* 15 */ ")",
-            /* 16 */ "{",
-            /* 17 */ "}",
-            /* 18 */ "=",
-            /* 19 */ "if",
-            /* 20 */ "while",
-            /* 21 */ "return",
-            /* 22 */ "else",
-            /* 23 */ "$"
-            };
+	String input = new String(), token = new String(), word = new String();
+	int position, stateError, acceptance, wrdCnt;
+	boolean continues, error;
 
-    public static void main(String[] args) {
-        text = text.trim();
-        Inicia();
-    }
+	public static void main(String[] args) {
+		Anl_Lexico lexeme = new Anl_Lexico();
+		lexeme.Analyze();
+	}
 
-    public static void Inicia() {
+	public Anl_Lexico() {
+		continues = true;
+		error = false;
+		input = "asd_1 = 1.5;";
+		position = 0;
+		wrdCnt = 0;
+		stateError = -1;
+		acceptance = 999;
+	}
 
-        while (continues) {
-            if(!text.trim().isEmpty()) {
-                // Inicia
-                actual = text.charAt(position);
-                System.out.println("Se analiza '" + actual + "'");
-                // System.out.println("Case es -> " + state);
-                if (Character.isLetter(actual)) {
-                    state = 1;
-                    last = 0;
-                    contString = true;
-                } else if (Character.isDigit(actual) || actual == '.') {
-                    if(actual == '.') contDot = true;
-                    if(contString != true) {
-                        state = 2;
-                        last = 1;
-                    } else {
-                        state = 1;
-                        last = 0;
-                    }
-                    // System.out.println("state -> " + state + " | last -> " + last);
-                } else if (actual == '+' || actual == '-' || actual == '*' || actual == '/' || actual == '<'
-                        || actual == '=' || actual == '>' || actual == '|' || actual == '&' || actual == '!') {
-                    state = 3;
-                    last = 2;
-                } else if (actual == '"') {
-                    state = 11; // cadena
-                } else if (actual == ';') {
-                    state = 4;
-                } else if (actual == ',') {
-                    state = 5;
-                } else if (actual == '(') {
-                    state = 6;
-                } else if (actual == ')') {
-                    state = 7;
-                } else if (actual == '{') {
-                    state = 8;
-                } else if (actual == '}') {
-                    state = 9;
-                } else if (actual == '$') {
-                    state = 10;
-                } else {
-                    System.out.println("Se detectÛ un error, como lo es mi vida");
-                    continues = false;
-                }
-                // ValidaciÛn punto y caracter
-                if (contString == true && contDot == true) {
-                    state = 0;
-                    continues = false;
-                    last = 99;
-                }
-                // Comienza switch
-                switch (state) {
-                    // ==== EncontrÛ una letra ====
-                    case 1: {
-                        System.out.println("Entra a case de letra");
-                        // Tipo
-                        if (text.equals("int") || text.equals("float") || text.equals("void")) {
-                            System.out.println("4 - tipo");
-                            continues = false;
-                        }
-                        // Reservada
-                        else if (text.equals("if") || text.equals("while") || text.equals("return") || text.equals("else")) {
-                            System.out.println("19 a 22 - reservada");
-                            continues = false;
-                        } else {
-                            // Identificador o error
-                            if(last == 0 || last == 1) {
-                                last = 0;
-                                state = 0;
-                            } else {
-                                System.out.println("Se detectÛ un error, como lo es mi vida");
-                                continues = false;
-                            }
-                        }
-                    } break; // Ends case 1
-                    case 2: {
-                        System.out.println("Entra a case de digito");
-                        // continues = false;
-                        if(contDot == true ) {
-                        	int count = text.length() - text.replace(".", "").length();
-                        	if(count > 1) {
-                        		System.out.println("Se detectÛ un error, como lo es mi vida");
-                        		last = 99;
-                                continues = false;
-                        	} else {
-                    			last = 3;
-                        		state = 0;
-                        		System.out.println("Ac·");
-                        		if(position == text.length()-1 && actual == '.') {
-                            		last = 99;
-                                    continues = false;
-                        		}
-                        	}
-                        } // Ends if dot true                        
-                        
-                    } break; // Ends case 2
-                    case 3: {
-                        
-                    } break; // Ends case 3
-                
-                } // Ends switch
-                if(position < text.length()-1) {
-                    position++;
-                } else {
-                    continues = false;
-                    tellMe();
-                }    
-            } else {
-                System.out.println("Variable text est· vacia");
-                continues = false;
-            } // Ends if empty
-        } // Ends while 'continues'
+	public void Analyze() {
+		int state, wLen, lastState;
+		char c;
+		while (continues) {
+			word = "";
+			token = "Desconocido";
+			state = lastState = 0;
+			wLen = input.length();
+			while ((state != stateError) && (state != acceptance) && (position != wLen)) {
+				c = input.charAt(position);
+				lastState = state;
+				switch (state) {
+				case 0:
+					if (Character.isLetter(c))
+						state = 1;
+					else if (Character.isDigit(c))
+						state = 2;
+					else if (c == '_')
+						state = 1;
+					else if (c == '!')
+						state = 10;
+					else if (c == '<')
+						state = 5;
+					else if (c == '>')
+						state = 8;
+					else if (c == '=')
+						state = 10;
+					else if (c == '.')
+						state = 13;
+					else if (c == '+' || c == '-' || c == '*' || c == '/')
+						state = 12;
+					else if (c == '(' || c == ')' || c == ',' || c == ';' || c == '{' || c == '}')
+						state = 13;
+					else if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+						state = 0;
+					else
+						state = stateError;
+					break;
+				case 1:
+					if (Character.isLetter(c))
+						state = 1;
+					else if (Character.isDigit(c))
+						state = 1;
+					else if (c == '_')
+						state = 1;
+					else if (c == '<' || c == '>' || c == '=' || c == '.' || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == ')' || c == ',' || c == ';' || c == '{'
+							|| c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r')
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 2:
+					if (Character.isDigit(c))
+						state = 2;
+					else if (c == '.')
+						state = 3;
+					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+'
+							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
+							|| c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r')
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 3:
+					if (Character.isDigit(c))
+						state = 4;
+					else
+						state = stateError;
+					break;
+				case 4:
+					if (Character.isDigit(c))
+						state = 4;
+					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+'
+							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
+							|| c == ';' || c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r')
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 5:
+					if (c == '>')
+						state = 7;
+					else if (c == '=')
+						state = 6;
+					else if (c == '<' || Character.isLetter(c) || c == '.' || Character.isDigit(c) || c == '+'
+							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
+							|| c == ';' || c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r')
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 6:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 7:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 8:
+					if (c == '=')
+						state = 9;
+					else if (c == '<' || c == '>' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 9:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 10:
+					if (c == '=')
+						state = 11;
+					else if (c == '<' || c == '>' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 11:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 12:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 13:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				default:
+					state = stateError;
+				} // End switch state
+				
+				if (state != stateError && state != acceptance && state != 0) {
+					word += c;
+				}
+				position++;
+				
+			} // End while
 
-    }
-    
-    static void tellMe () {
-        if (last == 0) {
-            System.out.println("0 - identificador");
-        }
-        if (last == 1) {
-            System.out.println("1 - entero");
-        }
-        if (last == 2) {
-            System.out.println("3 - operador");
-        }
-        if (last == 3) {
-            System.out.println("2 - real");
-        }
-        if(last == 99) {
-        	System.out.println("Se detectÛ un error, como lo es mi vida");
-        }
-    }
+			// Si estado es igual a -1 o 999 regresamos una posici√≥n y si estado es igual a
+			// -1 error ser√° verdadero.
+			if (state == stateError || state == acceptance) {
+				position--; // Regresamos al √∫ltimo caracter donde se encontr√≥ el estado de aceptaci√≥n
+				if (state == stateError) {
+					error = true;
+					break;
+				}
+			} else {
+				lastState = state;
+			}
+			// Entra a switch si no hay error
+			switch (lastState) {
+			case 1:
+				token = "Identificador";
+				if (itsKeyword(word)) {
+					token = "Palabra Reservada";
+				} else if (itsLogicalOp(word)) {
+					token = "Operador L√≥gico";
+				}
+				break;
+			case 2:
+				token = "N√∫mero Entero";
+				break;
+			case 4:
+				token = "N√∫mero Real";
+				break;
+			case 11:
+				token = "Operador Relacional";
+				break;
+			case 10:
+				token = "Operador de Asignaci√≥n";
+				break;
+			case 12:
+				token = "Operador Aritm√©tico";
+				break;
+			case 13:
+				token = "Delimitador";
+				break;
+			default:
+				token = "Desconocido";
+				break;
+			} // End switch lastState
+			System.out.println(wrdCnt + ".- \" " + word + " \" (" + token + ")");
+			wrdCnt++;
+			// wut
+			if (position == wLen) {
+				continues = false;
+			}
+		} // End while continues
+		if (error) {
+			System.out.println("Error en el an√°lisis");
+		}
+	}
+	
+	boolean itsKeyword(String word) {
+		return word.equals("int") || word.equals("float") || word.equals("return") || word.equals("while")
+				|| word.equals("if") || word.equals("else");
+	}
+
+	boolean itsLogicalOp(String word) {
+		return word.equals("&&") || word.equals("||") || word.equals("!");
+	}
 
 }
