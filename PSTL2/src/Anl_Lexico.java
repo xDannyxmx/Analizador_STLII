@@ -13,7 +13,8 @@ public class Anl_Lexico {
 	public Anl_Lexico() {
 		continues = true;
 		error = false;
-		input = "&& & and ! cas || | xd";
+		input = "iden 14 25.21 cadena float + - * / < > <= >= || && ! == != ; , ( ) { } = if while return else $"; // < <= > >=
+		// iden 14 25.21 cadena float + - * / = < > <= >= || && ! == != ; , ( ) { } = if while return else $
 		position = 0;
 		wrdCnt = 0;
 		stateError = -1;
@@ -39,14 +40,10 @@ public class Anl_Lexico {
 						state = 2;
 					else if (c == '_')
 						state = 1;
-					else if (c == '!' || c == '&' || c == '|')
+					else if (c == '!' || c == '&' || c == '|' || c == '=')
 						state = 10;
-					else if (c == '<')
-						state = 5;
-					else if (c == '>')
-						state = 8;
-					else if (c == '=')
-						state = 10;
+					else if (c == '<' || c == '>')
+						state = 11;
 					else if (c == '.')
 						state = 13;
 					else if (c == '+' || c == '-' || c == '*' || c == '/')
@@ -136,7 +133,9 @@ public class Anl_Lexico {
 						state = stateError;
 					break;
 				case 9:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+					if (c == '=')
+						 state = 14;
+					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
 							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
 							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
 							|| Character.isDigit(c))
@@ -156,7 +155,9 @@ public class Anl_Lexico {
 						state = stateError;
 					break;
 				case 11:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+					if (c == '=')
+						state = 14; // Here
+					else if (c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
 							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
 							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
 							|| c == '!' || c == '&' || c == '|' || Character.isDigit(c))
@@ -174,6 +175,15 @@ public class Anl_Lexico {
 						state = stateError;
 					break;
 				case 13:
+					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
+							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
+							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| Character.isDigit(c))
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 14:
 					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
 							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
 							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
@@ -205,39 +215,82 @@ public class Anl_Lexico {
 				lastState = state;
 			}
 			// Entra a switch si no hay error
+			// System.out.print("lastState -> " + lastState + "    ");
 			switch (lastState) {
 			case 1:
-				token = "Identificador";
-				if (itsKeyword(word)) {
-					token = "Palabra Reservada";
-				} else if (itsLogicalOp(word)) {
-					token = "Operador Lógico";
+				token = "0 | Identificador";
+				if (itsType(word)) {
+					token = "4 | Palabra Reservada";
+					// asdasdsda
+				} if (itsOrOp(word)) {
+					token = "8 | Operador OR";
+				} else if (itsAndOp(word)) {
+					token = "9 | Operador AND";
+				} else if (word.equals("if")) {
+					token = "19 | Intrucción if";
+				} else if (word.equals("while")) {
+					token = "20 | Intrucción while";
+				} else if (word.equals("return")) {
+					token = "21 | Intrucción return";
+				} else if (word.equals("else")) {
+					token = "22 | Intrucción else";
 				}
 				break;
 			case 2:
-				token = "Número Entero";
+				token = "1 | Número Entero";
 				break;
 			case 4:
-				token = "Número Real";
+				token = "2 | Número Real";
 				break;
 			case 11:
-				if (itsLogicalOp(word)) {
-					token = "Operador Lógico";
-				} else {
-					token = "Operador Relacional";
-				}
-				break;
-			case 10:
-				token = "Operador de Asignación";
-				if (itsLogicalOp(word)) {
-					token = "Operador Lógico";
+				if (itsOrOp(word)) {
+					token = "8 | Operador OR";
+				} else if (itsAndOp(word)) {
+					token = "9 | Operador AND";
+				} else if (itsRelOp(word)){
+					token = "7 | Operador Relacional";
+				} else if(itsEqualityOp(word)) {
+					token = "11 | Operador Igualdad";
 				} 
 				break;
+			case 10:
+				if (itsOrOp(word)) {
+					token = "8 | Operador OR";
+				} else if (itsAndOp(word)) {
+					token = "9 | Operador AND";
+				} else if (itsNotOp(word)) {
+					token = "10 | Operador NOT";
+				} else {
+					token = "18 | Igual";
+				}
+				break;
 			case 12:
-				token = "Operador Aritmético";
+				if(itsSumOp(word)) {
+					token = "5 | Operador Suma";
+				} else if (itsMulOp(word)) {
+					token = "6 | Operador Multiplicación";
+				}
 				break;
 			case 13:
-				token = "Delimitador";
+				if (word.equals(";"))
+					token = "12 | Punto y Coma";
+				else if(word.equals(","))
+					token = "13 | Coma";
+				else if(word.equals("("))
+					token = "14 | Apertura Paréntesis";
+				else if(word.equals(")"))
+					token = "15 | Cierre Paréntesis";
+				else if(word.equals("{"))
+					token = "16 | Apertura Corchetes";
+				else if(word.equals("}"))
+					token = "17 | Cierre Corchetes";
+				break;
+			case 14:
+				if(itsRelOp(word)) {
+					token = "7 | Operador Relacional";
+				} else {
+					token = "Desconocido";
+				}
 				break;
 			default:
 				token = "Desconocido";
@@ -255,14 +308,36 @@ public class Anl_Lexico {
 		}
 	}
 	
-	boolean itsKeyword(String word) {
-		return word.equals("int") || word.equals("float") || word.equals("return") || word.equals("while")
-				|| word.equals("if") || word.equals("else");
+	boolean itsType(String word) {
+		return word.equals("int") || word.equals("float") || word.equals("void");
+	}
+	
+	boolean itsSumOp(String word) { // + -
+		return word.equals("+") || word.equals("-");
+	}
+	
+	boolean itsMulOp(String word) { // * /
+		return word.equals("*") || word.equals("/");
 	}
 
-	// Validar && ||
-	boolean itsLogicalOp(String word) {
-		return word.equals("&&") || word.equals("||") || word.equals("!");
+	boolean itsRelOp(String word) {
+		return word.equals("<") || word.equals("<=") || word.equals(">") || word.equals(">=");
+	}
+	
+	boolean itsOrOp(String word) { // ||
+		return word.equals("||");
+	}
+	
+	boolean itsAndOp(String word) { // &&
+		return word.equals("&&");
+	}
+	
+	boolean itsNotOp(String word) { // !
+		return word.equals("!");
+	}
+	
+	boolean itsEqualityOp(String word) { // == !=
+		return word.equals("==") || word.equals("!=");
 	}
 
 }
