@@ -13,7 +13,7 @@ public class Anl_Lexico {
 	public Anl_Lexico() {
 		continues = true;
 		error = false;
-		input = "asd_1 = 1.5;";
+		input = "&& & and ! cas || | xd";
 		position = 0;
 		wrdCnt = 0;
 		stateError = -1;
@@ -39,7 +39,7 @@ public class Anl_Lexico {
 						state = 2;
 					else if (c == '_')
 						state = 1;
-					else if (c == '!')
+					else if (c == '!' || c == '&' || c == '|')
 						state = 10;
 					else if (c == '<')
 						state = 5;
@@ -67,7 +67,7 @@ public class Anl_Lexico {
 						state = 1;
 					else if (c == '<' || c == '>' || c == '=' || c == '.' || c == '.' || c == '+' || c == '-'
 							|| c == '*' || c == '/' || c == '(' || c == ')' || c == ',' || c == ';' || c == '{'
-							|| c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r')
+							|| c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '!' || c == '&' || c == '|')
 						state = acceptance;
 					else
 						state = stateError;
@@ -79,7 +79,8 @@ public class Anl_Lexico {
 						state = 3;
 					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+'
 							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
-							|| c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r')
+							|| c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
+							|| c == '!' || c == '&' || c == '|')
 						state = acceptance;
 					else
 						state = stateError;
@@ -96,7 +97,7 @@ public class Anl_Lexico {
 					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+'
 							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
 							|| c == ';' || c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n'
-							|| c == '\r')
+							|| c == '\r' || c == '!' || c == '&' || c == '|')
 						state = acceptance;
 					else
 						state = stateError;
@@ -105,20 +106,11 @@ public class Anl_Lexico {
 					if (c == '>')
 						state = 7;
 					else if (c == '=')
-						state = 6;
+						state = 10;
 					else if (c == '<' || Character.isLetter(c) || c == '.' || Character.isDigit(c) || c == '+'
 							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
 							|| c == ';' || c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n'
-							|| c == '\r')
-						state = acceptance;
-					else
-						state = stateError;
-					break;
-				case 6:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
+							|| c == '\r' || c == '!' || c == '&' || c == '|')
 						state = acceptance;
 					else
 						state = stateError;
@@ -153,12 +145,12 @@ public class Anl_Lexico {
 						state = stateError;
 					break;
 				case 10:
-					if (c == '=')
+					if (c == '=' || c == '!' || c == '&' || c == '|')
 						state = 11;
 					else if (c == '<' || c == '>' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
 							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
 							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
+							|| c == '!' || c == '&' || c == '|' || Character.isDigit(c))
 						state = acceptance;
 					else
 						state = stateError;
@@ -167,7 +159,7 @@ public class Anl_Lexico {
 					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
 							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
 							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
+							|| c == '!' || c == '&' || c == '|' || Character.isDigit(c))
 						state = acceptance;
 					else
 						state = stateError;
@@ -229,10 +221,17 @@ public class Anl_Lexico {
 				token = "Número Real";
 				break;
 			case 11:
-				token = "Operador Relacional";
+				if (itsLogicalOp(word)) {
+					token = "Operador Lógico";
+				} else {
+					token = "Operador Relacional";
+				}
 				break;
 			case 10:
 				token = "Operador de Asignación";
+				if (itsLogicalOp(word)) {
+					token = "Operador Lógico";
+				} 
 				break;
 			case 12:
 				token = "Operador Aritmético";
@@ -261,6 +260,7 @@ public class Anl_Lexico {
 				|| word.equals("if") || word.equals("else");
 	}
 
+	// Validar && ||
 	boolean itsLogicalOp(String word) {
 		return word.equals("&&") || word.equals("||") || word.equals("!");
 	}
