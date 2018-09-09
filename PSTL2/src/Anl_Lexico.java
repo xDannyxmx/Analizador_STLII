@@ -1,7 +1,11 @@
+import java.io.File;
+import java.util.Scanner;
 
 public class Anl_Lexico {
 
 	String input = new String(), token = new String(), word = new String();
+	File txt;
+	Scanner sc;
 	int position, stateError, acceptance, wrdCnt;
 	boolean continues, error;
 
@@ -11,10 +15,16 @@ public class Anl_Lexico {
 	}
 
 	public Anl_Lexico() {
+		try {
+			txt = new File("C:\\Users\\Anime\\eclipse-workspace\\PSTL2\\src\\code.txt");
+			sc = new Scanner(txt);
+			while (sc.hasNextLine())
+				input += sc.nextLine();
+		} catch(Exception ex) {
+			System.out.println("Error en la lectura del archivo");
+		}
 		continues = true;
 		error = false;
-		input = "iden 14 25.21 cadena float + - * / < > <= >= || && ! == != ; , ( ) { } = if while return else $"; // < <= > >=
-		// iden 14 25.21 cadena float + - * / = < > <= >= || && ! == != ; , ( ) { } = if while return else $
 		position = 0;
 		wrdCnt = 0;
 		stateError = -1;
@@ -33,180 +43,140 @@ public class Anl_Lexico {
 				c = input.charAt(position);
 				lastState = state;
 				switch (state) {
-				case 0:
-					if (Character.isLetter(c))
+				case 0: // =============================================================================================
+					if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+						state = 0;
+					else if (Character.isLetter(c) || c == '_')
 						state = 1;
 					else if (Character.isDigit(c))
 						state = 2;
-					else if (c == '_')
-						state = 1;
-					else if (c == '!' || c == '&' || c == '|' || c == '=')
-						state = 10;
-					else if (c == '<' || c == '>')
-						state = 11;
 					else if (c == '.')
-						state = 13;
+						state = 4;
 					else if (c == '+' || c == '-' || c == '*' || c == '/')
-						state = 12;
-					else if (c == '(' || c == ')' || c == ',' || c == ';' || c == '{' || c == '}')
-						state = 13;
-					else if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-						state = 0;
+						state = 5;
+					else if (c == '<' || c == '>')
+						state = 6;
+					else if (c == '!' || c == '&' || c == '|' || c == '=')
+						state = 8;
+					else if (c == '(' || c == ')' || c == '.' || c == ',' || c == ';' || c == '{' || c == '}' || c == '$')
+						state = 10;
 					else
 						state = stateError;
 					break;
-				case 1:
-					if (Character.isLetter(c))
+				case 1: // =============================================================================================
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_')
 						state = 1;
-					else if (Character.isDigit(c))
-						state = 1;
-					else if (c == '_')
-						state = 1;
-					else if (c == '<' || c == '>' || c == '=' || c == '.' || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == ')' || c == ',' || c == ';' || c == '{'
-							|| c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '!' || c == '&' || c == '|')
+					else if (/* Character.isLetter(c) || Character.isDigit(c) || c == '_' || */ c == '<' || c == '>'
+							|| c == '=' || c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '('
+							|| c == ')' || c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t'
+							|| c == '\n' || c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 2:
+				case 2: // =============================================================================================
 					if (Character.isDigit(c))
 						state = 2;
 					else if (c == '.')
 						state = 3;
-					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+'
-							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
-							|| c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| c == '!' || c == '&' || c == '|')
+					else if (Character.isLetter(c) /* || Character.isDigit(c) */ || c == '_' || c == '<' || c == '>'
+							|| c == '=' /* || c == '.' */ || c == '+' || c == '-' || c == '*' || c == '/' || c == '('
+							|| c == ')' || c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t'
+							|| c == '\n' || c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 3:
+				case 3: // =============================================================================================
 					if (Character.isDigit(c))
 						state = 4;
 					else
 						state = stateError;
 					break;
-				case 4:
+				case 4: // =============================================================================================
 					if (Character.isDigit(c))
 						state = 4;
-					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+'
-							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
-							|| c == ';' || c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n'
-							|| c == '\r' || c == '!' || c == '&' || c == '|')
+					else if (Character.isLetter(c) /* || Character.isDigit(c) */ || c == '_' || c == '<' || c == '>'
+							|| c == '=' || c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '('
+							|| c == ')' || c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t'
+							|| c == '\n' || c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 5:
-					if (c == '>')
+				case 5: // =============================================================================================
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>' || c == '='
+							|| c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+							|| c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
+						state = acceptance;
+					else
+						state = stateError;
+					break;
+				case 6: // =============================================================================================
+					if (c == '=')
 						state = 7;
-					else if (c == '=')
-						state = 10;
-					else if (c == '<' || Character.isLetter(c) || c == '.' || Character.isDigit(c) || c == '+'
-							|| c == '-' || c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ','
-							|| c == ';' || c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n'
-							|| c == '\r' || c == '!' || c == '&' || c == '|')
+					else if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<'
+							|| c == '>' /* || c == '=' */ || c == '.' || c == '+' || c == '-' || c == '*' || c == '/'
+							|| c == '(' || c == ')' || c == ',' || c == ';' || c == '{' || c == '}' || c == ' '
+							|| c == '\t' || c == '\n' || c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 7:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
+				case 7: // =============================================================================================
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>' || c == '='
+							|| c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+							|| c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 8:
-					if (c == '=')
+				case 8: // =============================================================================================
+					if (c == '=' || c == '&' || c == '|')
 						state = 9;
-					else if (c == '<' || c == '>' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
+					else if (c == '!')
+						state = stateError;
+					else if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>'
+					      /*|| c == '=' */ || c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '('
+							|| c == ')' || c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t'
+							|| c == '\n' || c == '\r' /* || c == '!' || c == '&' || c == '|' */ || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 9:
-					if (c == '=')
-						 state = 14;
-					else if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
+				case 9: // =============================================================================================
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>' || c == '='
+							|| c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+							|| c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 10:
-					if (c == '=' || c == '!' || c == '&' || c == '|')
-						state = 11;
-					else if (c == '<' || c == '>' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| c == '!' || c == '&' || c == '|' || Character.isDigit(c))
+				case 10: // =============================================================================================
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>' || c == '='
+							|| c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+							|| c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
 						state = acceptance;
 					else
 						state = stateError;
 					break;
-				case 11:
-					if (c == '=')
-						state = 14; // Here
-					else if (c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| c == '!' || c == '&' || c == '|' || Character.isDigit(c))
-						state = acceptance;
-					else
-						state = stateError;
-					break;
-				case 12:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
-						state = acceptance;
-					else
-						state = stateError;
-					break;
-				case 13:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
-						state = acceptance;
-					else
-						state = stateError;
-					break;
-				case 14:
-					if (c == '<' || c == '>' || c == '=' || Character.isLetter(c) || c == '.' || c == '+' || c == '-'
-							|| c == '*' || c == '/' || c == '(' || c == '_' || c == ')' || c == ',' || c == ';'
-							|| c == '{' || c == '}' || c == '.' || c == ' ' || c == '\t' || c == '\n' || c == '\r'
-							|| Character.isDigit(c))
-						state = acceptance;
-					else
-						state = stateError;
-					break;
-				default:
+				default: // =============================================================================================
 					state = stateError;
 				} // End switch state
-				
+
 				if (state != stateError && state != acceptance && state != 0) {
 					word += c;
 				}
 				position++;
-				
+
 			} // End while
 
-			// Si estado es igual a -1 o 999 regresamos una posición y si estado es igual a
-			// -1 error será verdadero.
 			if (state == stateError || state == acceptance) {
-				position--; // Regresamos al último caracter donde se encontró el estado de aceptación
+				position--;
 				if (state == stateError) {
 					error = true;
 					break;
@@ -214,86 +184,74 @@ public class Anl_Lexico {
 			} else {
 				lastState = state;
 			}
-			// Entra a switch si no hay error
-			// System.out.print("lastState -> " + lastState + "    ");
+
+			if (lastState == 8 || lastState == 6)
+				lastState++;
+
 			switch (lastState) {
 			case 1:
-				token = "0 | Identificador";
-				if (itsType(word)) {
+				if (word.equals("int") || word.equals("float") || word.equals("void"))
 					token = "4 | Palabra Reservada";
-					// asdasdsda
-				} if (itsOrOp(word)) {
-					token = "8 | Operador OR";
-				} else if (itsAndOp(word)) {
-					token = "9 | Operador AND";
-				} else if (word.equals("if")) {
+				else if (word.equals("if"))
 					token = "19 | Intrucción if";
-				} else if (word.equals("while")) {
+				else if (word.equals("while"))
 					token = "20 | Intrucción while";
-				} else if (word.equals("return")) {
+				else if (word.equals("return"))
 					token = "21 | Intrucción return";
-				} else if (word.equals("else")) {
+				else if (word.equals("else"))
 					token = "22 | Intrucción else";
-				}
+				else
+					token = "0 | Identificador";
 				break;
 			case 2:
 				token = "1 | Número Entero";
 				break;
+			// case 3 queda número con punto = Desconocido
 			case 4:
 				token = "2 | Número Real";
 				break;
-			case 11:
-				if (itsOrOp(word)) {
-					token = "8 | Operador OR";
-				} else if (itsAndOp(word)) {
-					token = "9 | Operador AND";
-				} else if (itsRelOp(word)){
+			case 5:
+				if (word.equals("+") || word.equals("-"))
+					token = "5 | Operador Suma";
+				else if (word.equals("*") || word.equals("/"))
+					token = "6 | Operador Multiplicación";
+				break;
+			case 7:
+				if (word.equals("<=") || word.equals(">=") || word.equals("<") || word.equals(">"))
 					token = "7 | Operador Relacional";
-				} else if(itsEqualityOp(word)) {
+				break;
+			case 9:
+				if (word.equals("||"))
+					token = "8 | Operador OR";
+				else if (word.equals("&&"))
+					token = "9 | Operador AND";
+				else if (word.equals("!"))
+					token = "10 | Operador NOT";
+				else if (word.equals("==") || word.equals("!="))
 					token = "11 | Operador Igualdad";
-				} 
+				else if(word.equals("="))
+					token = "18 | Igual ";
+				else
+					error = true;
 				break;
 			case 10:
-				if (itsOrOp(word)) {
-					token = "8 | Operador OR";
-				} else if (itsAndOp(word)) {
-					token = "9 | Operador AND";
-				} else if (itsNotOp(word)) {
-					token = "10 | Operador NOT";
-				} else {
-					token = "18 | Igual";
-				}
-				break;
-			case 12:
-				if(itsSumOp(word)) {
-					token = "5 | Operador Suma";
-				} else if (itsMulOp(word)) {
-					token = "6 | Operador Multiplicación";
-				}
-				break;
-			case 13:
 				if (word.equals(";"))
 					token = "12 | Punto y Coma";
-				else if(word.equals(","))
+				else if (word.equals(","))
 					token = "13 | Coma";
-				else if(word.equals("("))
+				else if (word.equals("("))
 					token = "14 | Apertura Paréntesis";
-				else if(word.equals(")"))
+				else if (word.equals(")"))
 					token = "15 | Cierre Paréntesis";
-				else if(word.equals("{"))
+				else if (word.equals("{"))
 					token = "16 | Apertura Corchetes";
-				else if(word.equals("}"))
+				else if (word.equals("}"))
 					token = "17 | Cierre Corchetes";
-				break;
-			case 14:
-				if(itsRelOp(word)) {
-					token = "7 | Operador Relacional";
-				} else {
-					token = "Desconocido";
-				}
+				else if (word.equals("$"))
+					token = "23 | Símbolo de Cierre";
 				break;
 			default:
-				token = "Desconocido";
+				token = "Indice: " + lastState + " <- Desconocido";
 				break;
 			} // End switch lastState
 			System.out.println(wrdCnt + ".- \" " + word + " \" (" + token + ")");
@@ -306,38 +264,6 @@ public class Anl_Lexico {
 		if (error) {
 			System.out.println("Error en el análisis");
 		}
-	}
-	
-	boolean itsType(String word) {
-		return word.equals("int") || word.equals("float") || word.equals("void");
-	}
-	
-	boolean itsSumOp(String word) { // + -
-		return word.equals("+") || word.equals("-");
-	}
-	
-	boolean itsMulOp(String word) { // * /
-		return word.equals("*") || word.equals("/");
-	}
-
-	boolean itsRelOp(String word) {
-		return word.equals("<") || word.equals("<=") || word.equals(">") || word.equals(">=");
-	}
-	
-	boolean itsOrOp(String word) { // ||
-		return word.equals("||");
-	}
-	
-	boolean itsAndOp(String word) { // &&
-		return word.equals("&&");
-	}
-	
-	boolean itsNotOp(String word) { // !
-		return word.equals("!");
-	}
-	
-	boolean itsEqualityOp(String word) { // == !=
-		return word.equals("==") || word.equals("!=");
 	}
 
 }
