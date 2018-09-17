@@ -1,11 +1,12 @@
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Anl_Lexico {
 
 	String input = new String(), token = new String(), word = new String();
-	File txt;
-	Scanner sc;
+	ArrayList<Componente> lstComponent = new ArrayList<Componente>();
+	File txt; Scanner sc;
 	int position, stateError, acceptance, wrdCnt;
 	boolean continues, error;
 
@@ -16,6 +17,7 @@ public class Anl_Lexico {
 
 	public Anl_Lexico() {
 		try {
+			// iden 14 25.21 "Esto deberá ser una cadena" float + - * / < > <= >= || && ! == != ; , ( ) { } = if while return else $
 			txt = new File("C:\\Users\\Anime\\eclipse-workspace\\PSTL2\\src\\code.txt");
 			sc = new Scanner(txt);
 			while (sc.hasNextLine())
@@ -60,6 +62,8 @@ public class Anl_Lexico {
 						state = 8;
 					else if (c == '(' || c == ')' || c == '.' || c == ',' || c == ';' || c == '{' || c == '}' || c == '$')
 						state = 10;
+					else if (c == '"')
+						state = 11;
 					else
 						state = stateError;
 					break;
@@ -164,6 +168,26 @@ public class Anl_Lexico {
 					else
 						state = stateError;
 					break;
+				case 11: // =============================================================================================
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>' || c == '='
+							|| c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+							|| c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r' || c == '!' || c == '&' || c == '|' || c == '$')
+						state = 11;
+					else if (c == '"')
+						state = 12;
+					else
+						state = stateError;
+					break;
+				case 12:
+					if (Character.isLetter(c) || Character.isDigit(c) || c == '_' || c == '<' || c == '>' || c == '='
+							|| c == '.' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+							|| c == ',' || c == ';' || c == '{' || c == '}' || c == ' ' || c == '\t' || c == '\n'
+							|| c == '\r' || c == '!' || c == '&' || c == '|' || c == '$' || c == '"')
+						state = acceptance;
+					else
+						state = stateError;
+					break;
 				default: // =============================================================================================
 					state = stateError;
 				} // End switch state
@@ -191,70 +215,74 @@ public class Anl_Lexico {
 			switch (lastState) {
 			case 1:
 				if (word.equals("int") || word.equals("float") || word.equals("void"))
-					token = "4 | Palabra Reservada";
+					token = "4"; //"4 | Palabra Reservada";
 				else if (word.equals("if"))
-					token = "19 | IntrucciÃ³n if";
+					token = "19"; //"19 | Intrucción if";
 				else if (word.equals("while"))
-					token = "20 | IntrucciÃ³n while";
+					token = "20"; //"20 | Intrucción while";
 				else if (word.equals("return"))
-					token = "21 | IntrucciÃ³n return";
+					token = "21"; //"21 | Intrucción return";
 				else if (word.equals("else"))
-					token = "22 | IntrucciÃ³n else";
+					token = "22"; //"22 | Intrucción else";
 				else
-					token = "0 | Identificador";
+					token = "0"; //"0 | Identificador";
 				break;
 			case 2:
-				token = "1 | NÃºmero Entero";
+				token = "1"; //"1 | Número Entero";
 				break;
-			// case 3 queda nÃºmero con punto = Desconocido
+			// case 3 queda número con punto = Desconocido
 			case 4:
-				token = "2 | NÃºmero Real";
+				token = "2"; //"2 | Número Real";
 				break;
 			case 5:
 				if (word.equals("+") || word.equals("-"))
-					token = "5 | Operador Suma";
+					token = "5"; //"5 | Operador Suma";
 				else if (word.equals("*") || word.equals("/"))
-					token = "6 | Operador MultiplicaciÃ³n";
+					token = "6"; //"6 | Operador Multiplicación";
 				break;
 			case 7:
 				if (word.equals("<=") || word.equals(">=") || word.equals("<") || word.equals(">"))
-					token = "7 | Operador Relacional";
+					token = "7"; //"7 | Operador Relacional";
 				break;
 			case 9:
 				if (word.equals("||"))
-					token = "8 | Operador OR";
+					token = "8"; //"8 | Operador OR";
 				else if (word.equals("&&"))
-					token = "9 | Operador AND";
+					token = "9"; //"9 | Operador AND";
 				else if (word.equals("!"))
-					token = "10 | Operador NOT";
+					token = "10"; //"10 | Operador NOT";
 				else if (word.equals("==") || word.equals("!="))
-					token = "11 | Operador Igualdad";
+					token = "11"; //"11 | Operador Igualdad";
 				else if(word.equals("="))
-					token = "18 | Igual ";
+					token = "18"; //"18 | Igual ";
 				else
 					error = true;
 				break;
 			case 10:
 				if (word.equals(";"))
-					token = "12 | Punto y Coma";
+					token = "12"; //"12 | Punto y Coma";
 				else if (word.equals(","))
-					token = "13 | Coma";
+					token = "13"; //"13 | Coma";
 				else if (word.equals("("))
-					token = "14 | Apertura ParÃ©ntesis";
+					token = "14"; //"14 | Apertura Paréntesis";
 				else if (word.equals(")"))
-					token = "15 | Cierre ParÃ©ntesis";
+					token = "15"; //"15 | Cierre Paréntesis";
 				else if (word.equals("{"))
-					token = "16 | Apertura Corchetes";
+					token = "16"; //"16 | Apertura Corchetes";
 				else if (word.equals("}"))
-					token = "17 | Cierre Corchetes";
+					token = "17"; //"17 | Cierre Corchetes";
 				else if (word.equals("$"))
-					token = "23 | SÃ­mbolo de Cierre";
+					token = "23"; //"23 | Símbolo de Cierre";
+				break;
+			case 12:
+				token = "3"; //"3 | Cadena";
 				break;
 			default:
 				token = "Indice: " + lastState + " <- Desconocido";
 				break;
 			} // End switch lastState
-			System.out.println(wrdCnt + ".- \" " + word + " \" (" + token + ")");
+			// System.out.println(wrdCnt + ".- \" " + word + " \" (" + token + ")");
+			lstComponent.add(new Componente(word, token));
 			wrdCnt++;
 			// wut
 			if (position == wLen) {
@@ -262,7 +290,16 @@ public class Anl_Lexico {
 			}
 		} // End while continues
 		if (error) {
-			System.out.println("Error en el anÃ¡lisis");
+			System.out.println("Error en el análisis");
+		} else {
+			Anl_Sintactico sintactic = new Anl_Sintactico();
+			sintactic.ejemplo1();
+			System.out.println("=================================");
+			sintactic.ejemplo2(lstComponent);
+			System.out.println("=================================");
+			sintactic.ejemplo3(lstComponent);
+			System.out.println("=================================");
+			sintactic.ejercicio1();
 		}
 	}
 
